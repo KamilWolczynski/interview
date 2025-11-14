@@ -1,0 +1,33 @@
+## 1.Aha Note
+Since 1970, business productivity in mature economies has barely moved, compared to the change in the processing power of computers. 
+Over that period of time, business productivity has merely doubled, whereas the processing power of computers is 20 million times greater!
+
+Solow Paradox
+"You can see the computer age everywhere but in the productivity statistics."
+
+## 2. Aha Note
+The reason automation is hard to implement is because, even though these processes look repetitive,
+there are small decisions that need to be made at several steps along the way.
+
+## 3. Aha Note
+it’s easier to teach a person how to do a task than it is to program a computer with the rules required to perform the same task.
+
+
+## 3. Aha Note
+If a person needs to make a decision I can use machine learning to automate it or to present a restricted choice of options for the person to consider. 
+machine learning uses examples to determine how to respond in a given situation. 
+This allows it to be more flexible than rules-based systems. 
+Instead of breaking when faced with a novel situation, machine learning simply makes a decision with a lower level of confidence.
+
+## 3. Aha Note
+
+## 3. Aha Note
+
+## 3. Aha Note
+
+## 3. Aha Note
+
+
+
+## 3. Aha Note
+## 3. Aha Note

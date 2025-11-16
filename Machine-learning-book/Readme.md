@@ -3,7 +3,7 @@
 ### Book was written in 2020.
 I am going to adjust the code with Grok's help so I can run a test.
 
-### issue 1
+### Issue 1
 
 ```sh
 from sklearn.model_selection import train_test_split  # didn't work because SageMaker Image doesn't include this package
@@ -14,7 +14,7 @@ quick fix:
 ```sh
 !pip install scikit-learn
 ```
-#### I was in a different SageMaker studio, which caused the packages issues. I finally found my way to an appropriate JupiterLab environment where all packages besides awswrangler were pre-installed.
+I was in a different SageMaker studio, which caused the packages issues. I finally found my way to an appropriate JupiterLab environment where all packages besides awswrangler were pre-installed.
 **SageMaker notebook instance (Amazon Linux 2023, JupyterLab 4)**
 
 ### Issue 2: 403 Forbidden on pd.read_csv('s3://...')
@@ -57,7 +57,7 @@ test_df = wr.s3.read_csv(path=f"s3://{data_bucket}/{processed_prefix}/test.csv")
 test_df.drop(columns=["tech_approval_required"])
 ```
 
-### output 
+### Output 
 
 Columns in test_df:
 ['0']
@@ -114,7 +114,7 @@ try:
 except:
     pass
 ```
-### the fix
+### Fix
 Deleted the configuration of the endpoint and then deployed it again.
 
 Before that, I wanted to know what endpoints and config exist.
@@ -167,9 +167,9 @@ Account: 585008073988 | Region: us-east-1ENDPOINTS:
 ENDPOINT CONFIGS:order-approval-2025 | Created: 2025-11-15 14:21
 
 ### Issue 7: ModelError: An error occurred (ModelError) when calling the InvokeEndpoint operation: Received client error (415) 
-### from primary with message "Loading csv data failed with Exception, please ensure data is in csv format:
-### <class 'ValueError'>
-### could not convert string to float: 'False'". See
+from primary with message "Loading csv data failed with Exception, please ensure data is in csv format:
+<class 'ValueError'>
+**could not convert string to float: 'False'**
 
 The XGBoost model tried to parse 'False' as a float, but it’s a string ('False') instead of 0.0 or 1.0.
 XGBoost only accepts numeric CSV (no True/False, no strings).
@@ -199,14 +199,32 @@ def to_sagemaker_csv(df, label_col, include_header=False):
 ## Full Old vs. New Code Comparison
 
 | **1. Load Data** | `pd.read_csv(f's3://...')` + `s3fs` | `awswrangler.s3.read_csv()` or fallback to `boto3` + `pd.read_csv()` | `s3fs` is slow, deprecated, and needs extra config. `awswrangler` is **AWS-native**, faster, IAM-aware. |
+
+
 | **2. Feature Encoding** | `pd.get_dummies(df)` | Same | Logic unchanged — one-hot encoding is still valid. |
+
+
 | **3. Target Column** | `corrs = encoded_data.corr()['tech_approval_required']` | `target = "tech_approval_required_1"` | After `get_dummies`, boolean → `0/1` → new column name. **You fixed this correctly!** |
+
+
 | **4. Train/Val/Test Split** | `train_test_split(..., test_size=0.3)` | Same + `stratify=encoded[target]` | **Better**: `stratify` ensures class balance in splits → more reliable validation. |
+
+
 | **5. Save to S3** | `with s3.open(...) as f: f.write(...)` | `boto3.put_object(Body=...)` | `awswrangler.to_csv(..., content=...)` **doesn’t exist**. `put_object()` is **simple, reliable, and works with bytes**. |
+
+
 | **6. XGBoost Container** | `get_image_uri(..., 'xgboost', 'latest')` | `image_uris.retrieve("xgboost", version="1.7-1")` | `get_image_uri` **removed in SDK v2**. New API is required. |
+
+
 | **7. Training Input** | `sagemaker.s3_input(...)` | `TrainingInput(...)` | `s3_input` **deprecated**. `TrainingInput` is the new standard. |
+
+
 | **8. Instance Type** | `ml.m4.xlarge` | `ml.m5.xlarge` | `m4` **retired by AWS**. `m5` is current gen. |
+
+
 | **9. Deploy** | `estimator.deploy(...)` + manual serializer | `estimator.deploy(..., serializer=CSVSerializer())` | Cleaner, explicit, and **avoids runtime errors**. |
+
+
 | **10. Predict** | Manual `.decode('utf-8')` + split | `predictor.predict(X_test.values)` | Simpler, safer, batch-friendly. |
 
 ---

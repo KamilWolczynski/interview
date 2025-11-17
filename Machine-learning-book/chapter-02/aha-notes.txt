@@ -19,8 +19,15 @@ machine learning uses examples to determine how to respond in a given situation.
 This allows it to be more flexible than rules-based systems. 
 Instead of breaking when faced with a novel situation, machine learning simply makes a decision with a lower level of confidence.
 
-## 3. Aha Note
-
+## 4. Aha Note
+ML can work only with numeric data.
+```python
+def to_sagemaker_csv(df, label_col, include_header=False):
+    label = df[label_col].astype(int)
+    feats = df.drop(columns=[label_col]).astype(float)  # <-- ADD .astype(float)
+    out = pd.concat([label, feats], axis=1)
+    return out.to_csv(None, header=include_header, index=False).encode('utf-8')
+```
 ## 3. Aha Note
 
 ## 3. Aha Note

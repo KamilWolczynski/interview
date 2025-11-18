@@ -323,39 +323,9 @@ This part will break in many notebooks **because using `row[5]` and `row[4]` is 
 If the CSV changes column order — everything breaks.
 
 ---
-HEEERTERE
-### **Q3 — Look at your original dataframe.
-
-What do you think the columns are, and which column contains the text of the customer’s message?**
-
-Example possibilities:
-
-* `message`
-* `body`
-* `ticket_text`
-* `description`
-
-Tell me what **column name** contains the text BlazingText should learn from.
-
-Once you answer, we rewrite the whole preprocessing code in a clean, robust, 2025 version.
-
-Perfect, Kamil — that makes everything clear.
-Now we can rebuild the preprocessing in a **clean, safe, 2025-compatible form** without relying on dangerous `row[4]` or `row[5]` indexing.
-
-You're doing great — this is exactly how a real ML engineer thinks.
-
----
 
 # ✅ **STEP 3 — Modern Preprocessing (Final 2025 Version)**
 
-Column names:
-
-* **text** → the customer message
-* **escalate** → boolean label
-
-So we rewrite everything properly.
-
----
 
 # 🔥 **2025-Ready Preprocessing Code**
 
@@ -401,25 +371,102 @@ This is exactly the fastText/BlazingText supervised training format.
 
 ---
 
-# 🧠 **Socratic Checkpoint #4**
-
-Before we move to:
-
-* uploading processed data to S3
-* creating TrainingInput
-* defining the BlazingText estimator (updated for 2025)
-* training
-* deploying
-* predicting
-
-I want you to reason about this:
-
 ### **Q4 — Why do you think we join the tokens and the label into ONE string instead of saving tokens as a list or JSON?**
 
+BlazingText is built on top of **fastText**, and fastText reads input files line-by-line
 Give me your reasoning, Kamil — think in terms of:
 
 * fastText format
 * what the algorithm expects
 * how the tokenizer interacts with n-gram features
 
-Once you answer, we continue to **STEP 4 — Upload processed data to S3 (2025 best practices)**.
+---
+
+# ✅ **1. The NLTK punkt_tab issue (2025 reality)**
+
+You ran into this:
+
+```
+LookupError: Resource punkt_tab not found.
+```
+
+This is **normal** in 2025.
+
+### Why?
+
+* NLTK replaced the old `punkt` tokenizer files with a new faster, structured version called **punkt_tab**.
+* SageMaker notebook environments often lack it.
+* SSL mirrors in Jupyter often fail when downloading NLTK resources.
+
+So your fix is correct and safe:
+
+```python
+import nltk
+import ssl
+
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
+
+nltk.download('punkt_tab', quiet=True)
+nltk.download('punkt', quiet=True)
+
+print("NLTK punkt is ready!")
+```
+
+---
+
+
+
+# ⭐ **Ready for STEP 4 — Uploading processed data to S3 (2025 version)**
+
+Here is the outdated version you had:
+
+```python
+data = transformed_validation_rows.to_csv(
+    header=False, index=False, quoting=csv.QUOTE_NONE, sep='|', escapechar='^').encode()
+
+with s3.open(s3_validation_data, 'wb') as f:
+    f.write(data)
+```
+
+We don’t want to use raw `s3fs` writes anymore.
+
+### 2025 correct and clean way (using **awswrangler**) is this:
+
+```python
+import awswrangler as wr
+
+wr.s3.to_csv(
+    df=transformed_validation_rows,
+    path=s3_validation_data,
+    index=False,
+    header=False,
+    sep='|',
+    quoting=csv.QUOTE_NONE,
+    escapechar='^'
+)
+```
+
+And the same for training data.
+
+---
+
+# 🧠 **Socratic Question #5** (to ensure you're not just copying)
+
+### **Why do we need to set `header=False` and `index=False` when uploading the CSV for BlazingText?**
+
+Think carefully about:
+
+* fastText input format
+* what happens if a header line appears in the training data
+* how labels are detected
+
+Give me your reasoning, Kamil — then we move on to:
+
+# ⭐ **STEP 5 — Defining the BlazingText estimator (2025 update!)**
+
+This is where we modernize the entire training code.

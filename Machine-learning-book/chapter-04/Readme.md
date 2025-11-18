@@ -459,14 +459,12 @@ And the same for training data.
 
 ### **Why do we need to set `header=False` and `index=False` when uploading the CSV for BlazingText?**
 
-Think carefully about:
+header=False → so the model doesn’t read a non-labeled header as text
 
-* fastText input format
-* what happens if a header line appears in the training data
-* how labels are detected
+index=False → so numeric index values don’t become fake tokens
 
-Give me your reasoning, Kamil — then we move on to:
+Why we must tokenize text before sending it to BlazingText for prediction?
 
-# ⭐ **STEP 5 — Defining the BlazingText estimator (2025 update!)**
+We tokenize at prediction because the model learned on tokenized text.
+Sending raw text would break the vocabulary alignment and reduce accuracy.
 
-This is where we modernize the entire training code.
